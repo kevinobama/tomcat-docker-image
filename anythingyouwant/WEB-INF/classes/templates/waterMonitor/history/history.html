@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('device monitor history列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <label>时间：</label>
+                                <input type="text" class="time-input" placeholder="yyyy-mm-dd" name="startDate"/> —
+                                <input type="text" class="time-input" placeholder="yyyy-mm-dd" name="endDate"/>
+                            </li>
+
+                            <li>
+                                <label>状态：</label>
+                                <select name="status">
+                                    <option value="">全部</option>
+                                    <div th:each="status : ${deviceStatus}">
+                                        <option th:value="${status.cnName}" th:text="${status.cnName}"></option>
+                                    </div>
+                                </select>
+                            </li>
+
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+                <a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()" shiro:hasPermission="waterMonitor:history:remove">
+                    <i class="fa fa-remove"></i> 删除
+                </a>
+
+<!--                <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="waterMonitor:history:export">-->
+<!--                    <i class="fa fa-download"></i> 导出-->
+<!--                </a>-->
+
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('waterMonitor:history:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('waterMonitor:history:remove')}]];
+        var prefix = ctx + "waterMonitor/history";
+
+        $(function() {
+            var options = {
+                url: prefix + "/allMonitoryHistory",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "device monitor history",
+                columns: [{
+                    checkbox: true
+                },
+                // {
+                //     field: 'id',
+                //     title: '序号'
+                // },
+                {
+                    field: 'deviceIdentificationCode',
+                    title: '设备识别码'
+                },
+                {
+                    field: 'address',
+                    title: '安装地址'
+                },
+                // {
+                //     field: 'liquidLevel',
+                //     title: '当前液位'
+                // },
+                {
+                    field: 'communityName',
+                    title: '小区名称'
+                },
+                {
+                    field: 'liquidLevel',
+                    title: '当前液位'
+                },
+                // {
+                //     field: 'street',
+                //     title: '所属街道'
+                // },
+                // {
+                //     field: 'drainageSystem',
+                //     title: '排水系统'
+                // },
+                {
+                    field: 'status',
+                    title: '状态',
+                    formatter: function(value, row, index) {
+                        var data = value;
+                        if(value=="预警")
+                            data = "<span style='color:#D9001B;font-weight: bold'>"+value+"</span>";
+
+                        return data;
+                    }
+                },
+
+                {
+                    field: 'createdAt',
+                    title: '创建时间'
+                },
+
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+
+                        actions.push('<a class="btn btn-danger btn-xs ' + removeFlag + '" href="javascript:void(0)" onclick="$.operate.remove(\'' + row.id + '\')"><i class="fa fa-remove"></i>删除</a>');
+                        return actions.join('');
+                    }
+                }]
+            };
+            $.table.init(options);
+        });
+    </script>
+</body>
+</html>
